@@ -16,7 +16,7 @@ GptBot >> handleTextMessage: aMessage [
 	aMessage chat assistantsThread post: aMessage text by: aMessage from.
 	(aMessage doesMention: me) ifFalse: [ ^ self ].
 	aMessage answer: 'Let me think ... '.
-	aMessage chat askTheAssistantInResponseTo: aMessage 
+	aMessage chat askTheAssistantInResponseTo: aMessage
 ]
 
 { #category : #handling }
