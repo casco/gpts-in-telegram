@@ -8,6 +8,13 @@ Class {
 	#category : #GptsInTelegram
 }
 
+{ #category : #running }
+GptChat >> askTheAssistant [
+
+	assistant isNil | assistantsThread isNil ifTrue: [ self ].
+	assistantsThread startRunFor: assistant
+]
+
 { #category : #accessing }
 GptChat >> assistant [
 

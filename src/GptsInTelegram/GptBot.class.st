@@ -13,9 +13,16 @@ GptBot >> chatBuilderClass [
 { #category : #hooks }
 GptBot >> handleTextMessage: aMessage [
 
-	aMessage chat assistantsThread post: aMessage text by: aMessage from.   
-	
+	aMessage chat assistantsThread post: aMessage text by: aMessage from.
+	(aMessage doesMention: me) ifFalse: [ ^ self ].
+	aMessage answer: 'Let me think ... '.
+	aMessage chat askTheAssistant
+]
 
+{ #category : #handling }
+GptBot >> handleUnknownEvent: anUnknownUpdate [
+
+	Transcript show: 'Unknown event'
 ]
 
 { #category : #testing }
