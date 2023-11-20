@@ -66,6 +66,7 @@ GptBot >> handleTextMessage: aMessage [
 	mentionsMe := aMessage doesMention: me .
 	mentionsMe ifTrue: [ text := text copyWithRegex: me matchesTranslatedUsing: [:each | ''] ].
 	aMessage chat assistantsThread post: aMessage text by: aMessage from.   
+	self sendBotIsTypingTo: aMessage chat. 
 	aMessage 	chat askTheAssistantInResponseTo: aMessage. 
 	
 	
