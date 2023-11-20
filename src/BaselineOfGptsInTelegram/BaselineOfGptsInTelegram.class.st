@@ -28,5 +28,5 @@ BaselineOfGptsInTelegram >> telebots: spec [
 
 	spec
 		package: 'Telebots-Core'
-		with: [ spec repository: 'github://casco/telebots:master' ]
+		with: [ spec repository: 'github://casco/telebots' ]
 ]
