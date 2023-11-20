@@ -27,6 +27,34 @@ GptBot >> chatBuilderClass [
 ]
 
 { #category : #commands }
+GptBot >> config: aMessage [
+
+	aMessage answer: self describeMe.
+	aMessage chat assistant
+		ifNotNil: [ :it | 
+			aMessage answer:
+				(self descriptionForAssistant: it highlightAsCurrent: false) ]
+		ifNil: [ aMessage answer: '*Assistant*: not set' ].
+	self playgroundUrl: aMessage.
+]
+
+{ #category : #commands }
+GptBot >> describeMe [
+
+	^ String streamContents: [ :strm | 
+		  me firstname ifNotNil: [ :it | 
+			  strm
+				  nextPutAll: '*Name:* ';
+				  nextPutAll: (self withScapedMarkdownCharacters: it);
+				  lf ].
+		  me username ifNotNil: [ :it | 
+			  strm
+				  nextPutAll: '*User name:* ';
+				  nextPutAll: (self withScapedMarkdownCharacters: it);
+				  lf ] ]
+]
+
+{ #category : #commands }
 GptBot >> descriptionForAssistant: anAssistant highlightAsCurrent: aBoolean [
 
 	^ String streamContents: [ :strm | 
@@ -88,14 +116,14 @@ GptBot >> hasElephantMemory [
 { #category : #commands }
 GptBot >> ping: aMessage [
 	
-	aMessage answer: 'asst_ABIHOVgSQk80slWeAF8YjPku'
+	aMessage answer: 'pong'
 ]
 
 { #category : #commands }
 GptBot >> playgroundUrl: aMessage [
 
 	aMessage answer:
-		'[' , aMessage chat assistantsThread playgroundUrl , ']', '(' , aMessage chat assistantsThread playgroundUrl , ')'
+		'[Open thread in playground]', '(' , aMessage chat assistantsThread playgroundUrl , ')'
 ]
 
 { #category : #commands }
@@ -115,13 +143,14 @@ GptBot >> useAssistant: aMessage [
 		                copyFrom: '/useAssistant' size + 1
 		                to: aMessage text size) trimBoth.
 
-	assistantId = aMessage chat assistant id ifTrue: [ 
-		aMessage answer:
-			'That is the one you are currently using. Nothing to do but to remind you ... '.
-		aMessage answer: (self
-				 descriptionForAssistant: aMessage chat assistant
-				 highlightAsCurrent: true).
-		^ self ].
+	aMessage chat assistant ifNotNil: [ :it | 
+		it id = assistantId ifTrue: [ 
+			aMessage answer:
+				'That is the one you are currently using. Nothing to do but to remind you ... '.
+			aMessage answer: (self
+					 descriptionForAssistant: aMessage chat assistant
+					 highlightAsCurrent: true).
+			^ self ] ].
 
 
 	theAssistant := AssistantsAPI new assistants
@@ -134,7 +163,8 @@ GptBot >> useAssistant: aMessage [
 	aMessage chat assistant: theAssistant.
 
 	aMessage answer: 'Assistant changed. Now using: '.
-	aMessage answer: (self descriptionForAssistant: theAssistant highlightAsCurrent: true)
+	aMessage answer:
+		(self descriptionForAssistant: theAssistant highlightAsCurrent: true)
 ]
 
 { #category : #commands }
