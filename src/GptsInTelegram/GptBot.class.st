@@ -61,7 +61,12 @@ GptBot >> files: aMessage [
 { #category : #hooks }
 GptBot >> handleTextMessage: aMessage [
 
+	|  mentionsMe text |
+	text := aMessage text.
+	mentionsMe := aMessage doesMention: me .
+	mentionsMe ifTrue: [ text := text copyWithRegex: me matchesTranslatedUsing: [:each | ''] ].
 	aMessage chat assistantsThread post: aMessage text by: aMessage from.   
+	aMessage 	chat askTheAssistantInResponseTo: aMessage. 
 	
 	
 
