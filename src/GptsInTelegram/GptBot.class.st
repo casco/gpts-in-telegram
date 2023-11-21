@@ -82,8 +82,11 @@ GptBot >> descriptionForAssistant: anAssistant highlightAsCurrent: aBoolean [
 { #category : #commands }
 GptBot >> files: aMessage [
 
-	(AssistantsAPI new files ) do: [ :file | 
-		aMessage answer: file id, ' - ', file name ]
+	| files |
+	files := AssistantsAPI new files.
+	files ifNil: [ 
+		^ aMessage answer: 'Sorry; I am having issues taking to OpenAI API' ].
+	files do: [ :file | aMessage answer: file id , ' - ' , file name ]
 ]
 
 { #category : #hooks }
@@ -129,7 +132,13 @@ GptBot >> playgroundUrl: aMessage [
 { #category : #commands }
 GptBot >> restartGptThread: aMessage [
 
-	aMessage chat assistantsThread: AssistantsAPI new newThread.
+	| thread |
+	thread := AssistantsAPI new newThread.
+	thread ifNil: [ 
+		^ aMessage answer:
+			  'There was an issue trying to create a new thread.' ].
+
+	aMessage chat assistantsThread: thread.
 	aMessage answer:
 		'I hope you are sure about that ... done ... no way to undo it.'.
 	self playgroundUrl: aMessage
