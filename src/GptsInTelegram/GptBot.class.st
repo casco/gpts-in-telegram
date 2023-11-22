@@ -86,10 +86,13 @@ GptBot >> files: aMessage [
 	files := AssistantsAPI new files.
 	files ifNil: [ 
 		^ aMessage answer: 'Sorry; I am having issues taking to OpenAI API' ].
-	files do: [ :file | aMessage answer: file id , ' - ' , file name ]
+	files ifEmpty: [ ^ aMessage answer: 'No files ...' ].
+	files do: [ :file | 
+		aMessage answer:
+			(self withScapedMarkdownCharacters: file id , ' - ' , file name) ]
 ]
 
-{ #category : #hooks }
+{ #category : #handling }
 GptBot >> handleTextMessage: aMessage [
 
 	|  mentionsMe text |
@@ -188,5 +191,7 @@ GptBot >> useFile: aMessage [
 		        detect: [ :aFile | aFile id = fileId ]
 		        ifNone: [ 
 		        ^ aMessage answer: 'no file with id "' , fileId , '"' ].
-	aMessage answer: 'Ok, using file: ' , file id , ' - ' , file name
+	aMessage chat assistant fileIds: { fileId }.
+	aMessage answer: (self withScapedMarkdownCharacters:
+			 'Ok, using file: ' , file id , ' - ' , file name)
 ]
