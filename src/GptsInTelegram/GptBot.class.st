@@ -39,6 +39,30 @@ GptBot >> config: aMessage [
 ]
 
 { #category : #commands }
+GptBot >> deleteFile: aMessage [
+
+	| fileId api availableFiles theFile |
+	api := AssistantsAPI new.
+	availableFiles := api files.
+	fileId := (aMessage text
+		           copyFrom: '/deleteFile' size + 1
+		           to: aMessage text size) trimBoth.
+	theFile := availableFiles
+		           detect: [ :each | each id = fileId ]
+		           ifNone: [ 
+		           ^ aMessage answer:
+			             'That is not the id of an existing file' ].
+
+	[ AssistantsAPI new deleteFile: theFile ]
+		on: Error
+		do: [ 
+			^ aMessage answer:
+				  'Sorry; there was an error trying to delete the file' ].
+	aMessage answer:
+		'File has been deleted. Use \/files to get the list of available files'
+]
+
+{ #category : #commands }
 GptBot >> describeMe [
 
 	^ String streamContents: [ :strm | 
@@ -86,10 +110,26 @@ GptBot >> files: aMessage [
 	files := AssistantsAPI new files.
 	files ifNil: [ 
 		^ aMessage answer: 'Sorry; I am having issues taking to OpenAI API' ].
-	files ifEmpty: [ ^ aMessage answer: 'No files ...' ].
+	files ifEmpty: [ ^ aMessage answer: 'There are no files ... send a message with a pdf file to upload it' ].
 	files do: [ :file | 
 		aMessage answer:
-			(self withScapedMarkdownCharacters: file id , ' - ' , file name) ]
+			(self withScapedMarkdownCharacters: file id , ' ' , file name) ]
+]
+
+{ #category : #hooks }
+GptBot >> handleDocumentMessage: aMessage [
+
+	| fileReference |
+	fileReference := aMessage document fileName asFileReference.
+	fileReference binaryWriteStream
+		nextPutAll: (aMessage document readStreamWith: self) contents;
+		close.
+	aMessage answer:
+		'I''ll try to upload a file so I can use it. It may take a while ...'.
+	AssistantsAPI new uploadFile: fileReference fullName.
+	fileReference delete.
+	aMessage answer:
+		'The file should now be available. Just to be sure, check it with \/files'
 ]
 
 { #category : #handling }
@@ -182,16 +222,17 @@ GptBot >> useAssistant: aMessage [
 { #category : #commands }
 GptBot >> useFile: aMessage [
 
-	| fileId file |
+	| fileId file api |
 	fileId := (aMessage text
 		           copyFrom: '/useFile' size + 1
 		           to: aMessage text size) trimBoth.
-
-	file := AssistantsAPI new files
+	api := AssistantsAPI new.
+	file := api files
 		        detect: [ :aFile | aFile id = fileId ]
 		        ifNone: [ 
 		        ^ aMessage answer: 'no file with id "' , fileId , '"' ].
 	aMessage chat assistant fileIds: { fileId }.
+	api postAssistant: aMessage chat assistant .
 	aMessage answer: (self withScapedMarkdownCharacters:
 			 'Ok, using file: ' , file id , ' - ' , file name)
 ]
